@@ -58,6 +58,12 @@ jobs:
           sudo -E apt-get -y autoremove --purge
           sudo -E apt-get clean
           
+      - name: 同步最新的源码
+        run: |
+          git remote add openwrt https://github.com/coolsnowwolf/lede.git
+          git pull openwrt master
+          git remote -v
+          
       - name: Update feeds
         run: |
           ./scripts/feeds update -a
@@ -102,18 +108,18 @@ jobs:
           # 
           
           # 编译x64固件:
-          cat >> .config <<EOF
-          CONFIG_TARGET_x86=y
-          CONFIG_TARGET_x86_64=y
-          CONFIG_TARGET_x86_64_Generic=y
-          EOF
+          #cat >> .config <<EOF
+          #CONFIG_TARGET_x86=y
+          #CONFIG_TARGET_x86_64=y
+          #CONFIG_TARGET_x86_64_Generic=y
+          #EOF
           
           # 编译newifi-d2固件:
-          #cat >> .config <<EOF
-          #CONFIG_TARGET_ramips=y
-          #CONFIG_TARGET_ramips_mt7621=y
-          #CONFIG_TARGET_ramips_mt7621_DEVICE_d-team_newifi-d2=y
-          #EOF
+          cat >> .config <<EOF
+          CONFIG_TARGET_ramips=y
+          CONFIG_TARGET_ramips_mt7621=y
+          CONFIG_TARGET_ramips_mt7621_DEVICE_d-team_newifi-d2=y
+          EOF
 
           # 固件压缩:
           cat >> .config <<EOF
@@ -216,10 +222,11 @@ jobs:
       - name: Compile firmware
         run: |
           echo -e "$(nproc) thread build."
-          make -j$(nproc) V=s
+          ##make -j$(nproc) V=s
+          make -j$(nproc) || make -j99 V=s
 
       - name : Upload artifact
         uses: actions/upload-artifact@master
         with:
-          name: OpenWrt firmware
+          name: newifi3
           path: bin/targets
